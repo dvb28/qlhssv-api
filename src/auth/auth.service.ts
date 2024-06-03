@@ -44,7 +44,7 @@ export class AuthService {
 
       // Token data
       const token = {
-        accessToken: this.jwtService.sign(payload),
+        accessToken: await this.jwtService.signAsync(payload),
         expiration: jwtConstants.expiresIn,
       };
 

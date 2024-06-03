@@ -55,7 +55,7 @@ export class StatisticalService {
     params: FacultyPageDto,
   ): Promise<PageDateDto<FacultyStatisResDto>> {
     // Limit
-    const limit = 6;
+    const limit = 5;
 
     // Page size
     const size = parseInt(params.page.toString());
@@ -98,45 +98,84 @@ export class StatisticalService {
   async students_and_course(): Promise<any> {
     // Exception
     try {
-      const [male, female, rejected, accepted, pending, course, graduate] =
-        await Promise.all([
-          this.studentsRepository
-            .createQueryBuilder('students')
-            .where('students.gender = :gender', { gender: GenderEnum.MALE })
-            .getCount(),
-          this.studentsRepository
-            .createQueryBuilder('students')
-            .where('students.gender = :gender', { gender: GenderEnum.FEMALE })
-            .getCount(),
-          this.studentsRepository
-            .createQueryBuilder('students')
-            .where('students.state = :state', {
-              state: StudentStateEnum.REJECTED,
-            })
-            .getCount(),
-          this.studentsRepository
-            .createQueryBuilder('students')
-            .where('students.state = :state', {
-              state: StudentStateEnum.ACCEPTED,
-            })
-            .getCount(),
-          this.studentsRepository
-            .createQueryBuilder('students')
-            .where('students.state = :state', {
-              state: StudentStateEnum.PENDING,
-            })
-            .getCount(),
-          this.courseRepository.createQueryBuilder().getCount(),
-          this.courseRepository
-            .createQueryBuilder('course')
-            .where('course.is_graduate = :is_graduate', {
-              is_graduate: 0,
-            })
-            .getCount(),
-        ]);
+      const [
+        male,
+        female,
+        rejected,
+        approve_true,
+        approve_false,
+        accepted,
+        pending,
+        notyet,
+        course,
+        graduate,
+      ] = await Promise.all([
+        this.studentsRepository
+          .createQueryBuilder('students')
+          .where('students.gender = :gender', { gender: GenderEnum.MALE })
+          .getCount(),
+        this.studentsRepository
+          .createQueryBuilder('students')
+          .where('students.gender = :gender', { gender: GenderEnum.FEMALE })
+          .getCount(),
+        this.studentsRepository
+          .createQueryBuilder('students')
+          .where('students.state = :state', {
+            state: StudentStateEnum.REJECTED,
+          })
+          .getCount(),
+        this.studentsRepository
+          .createQueryBuilder('students')
+          .where('students.approve = :approve', {
+            approve: true,
+          })
+          .getCount(),
+        this.studentsRepository
+          .createQueryBuilder('students')
+          .where('students.approve = :approve', {
+            approve: false,
+          })
+          .getCount(),
+        this.studentsRepository
+          .createQueryBuilder('students')
+          .where('students.state = :state', {
+            state: StudentStateEnum.ACCEPTED,
+          })
+          .getCount(),
+        this.studentsRepository
+          .createQueryBuilder('students')
+          .where('students.state = :state', {
+            state: StudentStateEnum.PENDING,
+          })
+          .getCount(),
+        this.studentsRepository
+          .createQueryBuilder('students')
+          .where('students.state = :state', {
+            state: StudentStateEnum.NOTYET,
+          })
+          .getCount(),
+        this.courseRepository.createQueryBuilder().getCount(),
+        this.courseRepository
+          .createQueryBuilder('course')
+          .where('course.is_graduate = :is_graduate', {
+            is_graduate: 0,
+          })
+          .getCount(),
+      ]);
 
       // Return
-      return { male, female, rejected, accepted, pending, course, graduate };
+      return {
+        male,
+        female,
+        rejected,
+        accepted,
+        pending,
+        course,
+        graduate,
+        approve_true,
+        approve_false,
+        notyet,
+      };
     } catch (error) {
       // Throw error
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);

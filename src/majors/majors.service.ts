@@ -45,12 +45,31 @@ export class MajorsService {
 
     // Exception
     try {
-      // Destruc
-      const [data, total] = await this.majorsRepository.findAndCount({
-        skip: (size - 1) * limit,
-        take: limit,
-        order: { created_at: 'ASC' },
-      });
+      // Create query
+      const query = this.majorsRepository
+        .createQueryBuilder('majors')
+        .leftJoinAndSelect(
+          'majors.faculty',
+          'faculty',
+          'faculty.id = majors.faculty_id',
+        )
+        .select([
+          'majors.id',
+          'majors.faculty_id',
+          'majors.name',
+          'majors.desc',
+          'majors.identifier_id',
+          'majors.type',
+          'majors.created_at',
+          'majors.updated_at',
+        ])
+        .addSelect(['faculty.name'])
+        .skip((size - 1) * limit)
+        .orderBy('majors.created_at', 'ASC')
+        .take(limit);
+
+      // Destructuring
+      const [data, total] = await query.getManyAndCount();
 
       // Return
       return {

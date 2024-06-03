@@ -1,28 +1,40 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { Repository } from 'typeorm';
-import { InjectRepository } from '@nestjs/typeorm';
+import { Repository, EntityManager, InsertResult } from 'typeorm';
+import { InjectEntityManager, InjectRepository } from '@nestjs/typeorm';
 import { PageDateDto } from 'src/common/dto/shared/data.page.dto';
 import { StudentPapersAndCeritificate } from './student_papers_and_ceritificate.entity';
 import { SpacPageDto } from 'src/common/dto/spac/page.dto';
 import { SpacUpdateDto } from 'src/common/dto/spac/update.dto';
 import { SpacDeleteDto } from 'src/common/dto/spac/delete.dto';
 import { SpacCreateDto } from 'src/common/dto/spac/create.dto';
+import * as FileSaver from 'fs';
 
 @Injectable()
 export class StudentPapersAndCeritificateService {
   constructor(
     @InjectRepository(StudentPapersAndCeritificate)
     private readonly spaceRepository: Repository<StudentPapersAndCeritificate>,
+    @InjectEntityManager()
+    private entityManager: EntityManager,
   ) {}
 
   // [SERVICE] Create
   async create(body: SpacCreateDto): Promise<StudentPapersAndCeritificate> {
     // Exception
     try {
+      // Temp
+      const temp = Boolean(body?.file?.length > 0)
+        ? {
+            is_submit: true,
+            file: `files/spac/${body.file}`,
+            submit_date: new Date(),
+          }
+        : { file: null };
+
       // Created
       const spac = this.spaceRepository.create({
         ...body,
-        submit_date: body?.submit_date ? new Date(body.submit_date) : null,
+        ...temp,
         give_back_date: body?.give_back_date
           ? new Date(body.give_back_date)
           : null,
@@ -32,7 +44,27 @@ export class StudentPapersAndCeritificateService {
       return await this.spaceRepository.save(spac);
     } catch (error) {
       // Throw error
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(error.message, HttpStatus.CONFLICT);
+    }
+  }
+
+  // [SERVICE] Create
+  async multiple_create(body: SpacCreateDto[]): Promise<InsertResult> {
+    // Exception
+    try {
+      // Created
+      const inserted = await this.spaceRepository.insert(
+        body.map((item) => ({
+          ...item,
+          submit_date: new Date(),
+        })),
+      );
+
+      // Return
+      return inserted;
+    } catch (error) {
+      // Throw error
+      throw new HttpException(error.message, HttpStatus.CONFLICT);
     }
   }
 
@@ -70,14 +102,24 @@ export class StudentPapersAndCeritificateService {
   }
 
   // [SERVICE] Delete
-  async delete(params: SpacDeleteDto): Promise<number> {
+  async delete(params: SpacDeleteDto): Promise<any> {
     // Exception
     try {
-      // Destruc
-      await this.spaceRepository.delete(params.ids);
+      await this.entityManager.transaction(async (manager) => {
+        const deleted = await manager.delete(
+          StudentPapersAndCeritificate,
+          params.ids,
+        );
 
-      // Return
-      return params.ids.length;
+        if (params.files?.length > 0) {
+          params.files.forEach((file) => {
+            file && FileSaver.unlinkSync(`./public/${file}`);
+          });
+        }
+
+        // Return
+        return deleted?.affected !== 0;
+      });
     } catch (error) {
       // Throw error
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -99,15 +141,29 @@ export class StudentPapersAndCeritificateService {
       // Check spac
       if (!spac) {
         throw new HttpException(
-          'Không tìm thấy khoa muốn cập nhật',
+          'Không tìm thấy chứng chỉ muốn cập nhật',
           HttpStatus.NOT_FOUND,
         );
       }
 
+      // Check and delete file
+      if (spac?.file && body?.file) {
+        FileSaver.unlinkSync(`./public/${spac.file}`);
+      }
+
+      // Temp
+      const temp = Boolean(body?.file !== '')
+        ? {
+            is_submit: true,
+            file: `files/spac/${body.file}`,
+            submit_date: new Date(),
+          }
+        : { file: null };
+
       // Update
       Object.assign(spac, {
         ...data,
-        submit_date: data?.submit_date ? new Date(data.submit_date) : null,
+        ...temp,
         give_back_date: data?.give_back_date
           ? new Date(data.give_back_date)
           : null,

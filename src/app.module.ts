@@ -26,7 +26,10 @@ import { CourseController } from './course/course.controller';
 import { CourseModule } from './course/course.module';
 import { Course } from './course/course.entity';
 import { StatisticalModule } from './statistical/statistical.module';
-
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
+import { JwtModule } from '@nestjs/jwt';
+import { jwtConstants } from './auth/constants';
 @Module({
   imports: [
     TypeOrmModule.forRoot({
@@ -46,6 +49,14 @@ import { StatisticalModule } from './statistical/statistical.module';
         StudentPapersAndCeritificate,
       ],
       synchronize: true,
+    }),
+    JwtModule.register({
+      global: true,
+      secret: jwtConstants.secret,
+      signOptions: { expiresIn: jwtConstants.expiresIn },
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'public'),
     }),
     AuthModule,
     UsersModule,

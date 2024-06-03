@@ -96,11 +96,11 @@ export class MajorsController {
   @HttpCode(200)
   async search(@Query(new ValidationPipe()) params: MajorsSearchDto) {
     // Call service
-    const statistical = await this.majorsService.search(params);
+    const search = await this.majorsService.search(params);
 
     // Return
     return new ResponseData<PageDateDto<Majors>>(
-      { data: statistical },
+      { data: search },
       HttpStatus.OK,
     );
   }

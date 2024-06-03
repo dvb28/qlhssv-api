@@ -14,6 +14,7 @@ export class StudentsPageDtoDataDto {
   course_id: string;
   course_name?: StudentsPageDtoDataCourse;
   identifier_id: string;
+  approve: boolean;
   created_at: Date;
   updated_at: Date;
 }

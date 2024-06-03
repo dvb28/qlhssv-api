@@ -41,6 +41,13 @@ export class StudentPapersAndCeritificate {
   submit_note: string;
 
   @Column({
+    type: 'varchar',
+    nullable: true,
+    length: 255,
+  })
+  file: string;
+
+  @Column({
     type: 'boolean',
     nullable: false,
     default: false,

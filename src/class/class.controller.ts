@@ -18,6 +18,8 @@ import { ClassPageDto } from 'src/common/dto/class/page.dto';
 import { ClassDeleteDto } from 'src/common/dto/class/delete.dto';
 import { ClassUpdateDto } from 'src/common/dto/class/update.dto';
 import { ClassStatisReqDto } from 'src/common/dto/class/statis.dto';
+import { PageDateDto } from 'src/common/dto/shared/data.page.dto';
+import { ClassSearchDto } from 'src/common/dto/class/search.dto';
 
 @Controller('class')
 export class ClassController {
@@ -86,5 +88,19 @@ export class ClassController {
 
     // Return
     return new ResponseData<any>({ data: statistical }, HttpStatus.OK);
+  }
+
+  // [GET] /search
+  @Get('search')
+  @HttpCode(200)
+  async search(@Query(new ValidationPipe()) params: ClassSearchDto) {
+    // Call service
+    const search = await this.classService.search(params);
+
+    // Return
+    return new ResponseData<PageDateDto<Class>>(
+      { data: search },
+      HttpStatus.OK,
+    );
   }
 }

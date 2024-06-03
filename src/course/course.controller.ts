@@ -18,6 +18,8 @@ import { CourseUpdateDto } from 'src/common/dto/course/update.dto';
 import { CourseService } from './course.service';
 import { Course } from './course.entity';
 import { CourseStatisReqDto } from 'src/common/dto/course/statis.dto';
+import { CourseSearchDto } from 'src/common/dto/course/search.dto';
+import { PageDateDto } from 'src/common/dto/shared/data.page.dto';
 
 @Controller('course')
 export class CourseController {
@@ -87,5 +89,19 @@ export class CourseController {
 
     // Return
     return new ResponseData<any>({ data: statistical }, HttpStatus.OK);
+  }
+
+  // [GET] /search
+  @Get('search')
+  @HttpCode(200)
+  async search(@Query(new ValidationPipe()) params: CourseSearchDto) {
+    // Call service
+    const search = await this.courseService.search(params);
+
+    // Return
+    return new ResponseData<PageDateDto<Course>>(
+      { data: search },
+      HttpStatus.OK,
+    );
   }
 }

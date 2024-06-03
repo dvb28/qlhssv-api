@@ -1,7 +1,7 @@
 import { GenderEnum } from 'src/common/enums/students/gender.enum';
 
 export class UsersDto {
-  _id: string;
+  id: string;
   email: string;
   fullname: string;
   phone: string;
@@ -11,7 +11,7 @@ export class UsersDto {
   updated_at: Date;
 
   constructor(object: any) {
-    this._id = object._id;
+    this.id = object.id;
     this.email = object.email;
     this.fullname = object.fullname;
     this.phone = object.phone;

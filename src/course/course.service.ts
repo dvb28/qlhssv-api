@@ -11,6 +11,7 @@ import {
   CourseStatisReqDto,
   CourseStatisResDto,
 } from 'src/common/dto/course/statis.dto';
+import { CourseSearchDto } from 'src/common/dto/course/search.dto';
 
 @Injectable()
 export class CourseService {
@@ -153,6 +154,43 @@ export class CourseService {
       return {
         ...courseQuery,
         classes: courseQuery.classes.length,
+      };
+    } catch (error) {
+      // Throw error
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  // [SERVICE] Search with column
+  async search(params: CourseSearchDto): Promise<PageDateDto<Course>> {
+    // Limit
+    const limit = 10;
+
+    // Page size
+    const size = parseInt(params.page.toString());
+
+    // Exception
+    try {
+      // Destruc
+      const query = this.courseRepository
+        .createQueryBuilder('course')
+        .where(`course.${params.field} LIKE :search`, {
+          search: `%${params.search}%`,
+        })
+        .skip((size - 1) * limit)
+        .orderBy('course.created_at', 'ASC')
+        .take(limit);
+
+      // Destructuring
+      const [data, total] = await query.getManyAndCount();
+
+      // Return
+      return {
+        data,
+        total,
+        limit,
+        page: size,
+        pages: Math.ceil(total / limit),
       };
     } catch (error) {
       // Throw error

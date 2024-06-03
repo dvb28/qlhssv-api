@@ -19,6 +19,9 @@ import { StudentsPageDto } from 'src/common/dto/student/page.dto';
 import { Students } from './students.entity';
 import { StudentsUpdateDto } from 'src/common/dto/student/update.dto';
 import { StudentsGetDto } from 'src/common/dto/student/get.dto';
+import { StudentsSearchDto } from 'src/common/dto/student/search.dto';
+import { PageDateDto } from 'src/common/dto/shared/data.page.dto';
+import { StudentsApproveDto } from 'src/common/dto/student/approve.dto';
 
 @Controller('students')
 export class StudentsController {
@@ -89,5 +92,33 @@ export class StudentsController {
 
     // Return
     return new ResponseData<Students[]>({ data: all }, HttpStatus.OK);
+  }
+
+  // [GET] /search
+  @Get('search')
+  @HttpCode(200)
+  async search(@Query(new ValidationPipe()) params: StudentsSearchDto) {
+    // Call service
+    const statistical = await this.studentsService.search(params);
+
+    // Return
+    return new ResponseData<PageDateDto<Students>>(
+      { data: statistical },
+      HttpStatus.OK,
+    );
+  }
+
+  // [PUT] /approve
+  @Put('approve')
+  @HttpCode(200)
+  async approve(@Body(new ValidationPipe()) body: StudentsApproveDto) {
+    // Call service
+    const approve = await this.studentsService.approve(body);
+
+    // Return
+    return new ResponseData<PageDateDto<Students>>(
+      { data: approve },
+      HttpStatus.OK,
+    );
   }
 }

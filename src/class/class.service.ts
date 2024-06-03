@@ -13,6 +13,7 @@ import {
   ClassStatisResDto,
 } from 'src/common/dto/class/statis.dto';
 import { StudentStateEnum } from 'src/common/enums/students/state.enum';
+import { ClassSearchDto } from 'src/common/dto/class/search.dto';
 
 @Injectable()
 export class ClassService {
@@ -49,12 +50,12 @@ export class ClassService {
       // Create query
       const query = this.classRepository
         .createQueryBuilder('class')
-        .innerJoinAndSelect(
+        .leftJoinAndSelect(
           'class.faculty',
           'faculty',
           'faculty.id = class.faculty_id',
         )
-        .innerJoinAndSelect(
+        .leftJoinAndSelect(
           'class.course',
           'course',
           'course.id = class.course_id',
@@ -144,12 +145,12 @@ export class ClassService {
       // Create query
       const query = this.classRepository
         .createQueryBuilder('class')
-        .innerJoinAndSelect(
+        .leftJoinAndSelect(
           'class.faculty',
           'faculty',
           'faculty.id = class.faculty_id',
         )
-        .innerJoinAndSelect(
+        .leftJoinAndSelect(
           'class.course',
           'course',
           'course.id = class.course_id',
@@ -243,6 +244,70 @@ export class ClassService {
         students_pending,
       };
     } catch (error) {
+      // Throw error
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  // [SERVICE] Search with column
+  async search(params: ClassSearchDto): Promise<PageDateDto<Class>> {
+    // Limit
+    const limit = 10;
+
+    // Page size
+    const size = parseInt(params.page.toString());
+
+    // Exception
+    try {
+      // Destruc
+      const query = this.classRepository
+        .createQueryBuilder('class')
+        .where(`class.${params.field} LIKE :search`, {
+          search: `%${params.search}%`,
+        })
+        .leftJoinAndSelect(
+          'class.students',
+          'students',
+          'class.id = students.class_id',
+        )
+        .leftJoinAndSelect(
+          'class.faculty',
+          'faculty',
+          'faculty.id = class.faculty_id',
+        )
+        .leftJoinAndSelect(
+          'class.course',
+          'course',
+          'course.id = class.course_id',
+        )
+        .select([
+          'class.id',
+          'class.name',
+          'class.desc',
+          'class.identifier_id',
+          'faculty.name',
+          'students.state',
+          'course.name',
+          'class.created_at',
+          'class.updated_at',
+        ])
+        .skip((size - 1) * limit)
+        .orderBy('class.created_at', 'ASC')
+        .take(limit);
+
+      // Destructuring
+      const [data, total] = await query.getManyAndCount();
+
+      // Return
+      return {
+        data,
+        total,
+        limit,
+        page: size,
+        pages: Math.ceil(total / limit),
+      };
+    } catch (error) {
+      console.log(error);
       // Throw error
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }

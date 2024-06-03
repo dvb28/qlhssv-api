@@ -4,10 +4,13 @@ import {
   Delete,
   Get,
   HttpCode,
+  HttpException,
   HttpStatus,
   Post,
   Put,
   Query,
+  UploadedFiles,
+  UseInterceptors,
   ValidationPipe,
 } from '@nestjs/common';
 import { ResponseData } from 'src/common/global/response.data';
@@ -17,12 +20,47 @@ import { StudentPapersAndCeritificate } from './student_papers_and_ceritificate.
 import { SpacPageDto } from 'src/common/dto/spac/page.dto';
 import { SpacDeleteDto } from 'src/common/dto/spac/delete.dto';
 import { SpacUpdateDto } from 'src/common/dto/spac/update.dto';
+import { FilesInterceptor } from '@nestjs/platform-express';
+import { storageConfig } from 'src/common/helpers/storage';
 
 @Controller('student-papers-and-ceritificate')
 export class StudentPapersAndCeritificateController {
   constructor(
     private readonly spacService: StudentPapersAndCeritificateService,
   ) {}
+
+  // [POST] /create
+  @Post('upload')
+  @UseInterceptors(
+    FilesInterceptor('files', 10, { storage: storageConfig('files/spac') }),
+  )
+  async upload(@UploadedFiles() files: Express.Multer.File) {
+    // Check upload statis
+    if (files) {
+      // Return
+      return new ResponseData({ data: files }, HttpStatus.OK);
+    } else {
+      // Return
+      throw new HttpException(
+        'Nộp file chứng chỉ không thành công',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+  }
+
+  // [POST] /submit
+  @Put('submit')
+  @HttpCode(201)
+  async submit(@Body(new ValidationPipe()) body: SpacCreateDto) {
+    // Call service
+    const crt = await this.spacService.create(body);
+
+    // Return
+    return new ResponseData<StudentPapersAndCeritificate>(
+      { data: crt },
+      HttpStatus.CREATED,
+    );
+  }
 
   // [POST] /create
   @Post('create')
@@ -36,6 +74,17 @@ export class StudentPapersAndCeritificateController {
       { data: crt },
       HttpStatus.CREATED,
     );
+  }
+
+  // [POST] /create
+  @Post('multiple-create')
+  @HttpCode(200)
+  async multiple_create(@Body(new ValidationPipe()) body: SpacCreateDto[]) {
+    // Call service
+    const crt = await this.spacService.multiple_create(body);
+
+    // Return
+    return new ResponseData<any>({ data: crt }, HttpStatus.CREATED);
   }
 
   // [GET] /page

@@ -1,8 +1,6 @@
 import { Class } from 'src/class/class.entity';
 import { GenderEnum } from 'src/common/enums/students/gender.enum';
 import { HDTEnum } from 'src/common/enums/students/hdt.enum';
-import { NationEnum } from 'src/common/enums/students/nation.enum';
-import { StudentRankEnum } from 'src/common/enums/students/rank.enum';
 import { StudentStateEnum } from 'src/common/enums/students/state.enum';
 import { Majors } from 'src/majors/majors.entity';
 import { StudentPapersAndCeritificate } from 'src/student_papers_and_ceritificate/student_papers_and_ceritificate.entity';
@@ -23,8 +21,16 @@ export class Students {
   id: string;
 
   @Column({
+    type: 'varchar',
+    nullable: true,
+    default: null,
+  })
+  msv: string;
+
+  @Column({
     type: 'uuid',
-    nullable: false,
+    nullable: true,
+    default: null,
   })
   class_id: string;
 
@@ -51,10 +57,11 @@ export class Students {
   fullname: string;
 
   @Column({
-    type: 'date',
+    type: 'varchar',
+    length: 12,
     nullable: false,
   })
-  date_of_birth: Date;
+  date_of_birth: string;
 
   @Column({
     type: 'varchar',
@@ -80,31 +87,31 @@ export class Students {
   home_town: string;
 
   @Column({
-    type: 'enum',
-    enum: NationEnum,
-    default: NationEnum.VIETNAM,
-    nullable: false,
+    type: 'varchar',
+    nullable: true,
+    default: null,
   })
   nationality: string;
 
   @Column({
     type: 'varchar',
-    nullable: false,
+    nullable: true,
+    default: null,
     length: 255,
   })
   religion: string;
 
   @Column({
-    type: 'enum',
-    enum: NationEnum,
-    default: NationEnum.VIETNAM,
-    nullable: false,
+    type: 'varchar',
+    nullable: true,
+    default: null,
   })
   nation: string;
 
   @Column({
     type: 'varchar',
-    nullable: false,
+    nullable: true,
+    default: null,
     length: 10,
   })
   phone: string;
@@ -118,32 +125,33 @@ export class Students {
   state: string;
 
   @Column({
-    type: 'enum',
-    enum: StudentRankEnum,
-    nullable: false,
-    default: StudentRankEnum.TOT,
+    type: 'varchar',
+    nullable: true,
+    default: null,
+    length: 255,
   })
   study_rank: string;
 
   @Column({
-    type: 'enum',
-    enum: StudentRankEnum,
-    nullable: false,
-    default: StudentRankEnum.TOT,
+    type: 'varchar',
+    nullable: true,
+    default: null,
+    length: 255,
   })
   morality_rank: string;
 
   @Column({
-    type: 'enum',
-    enum: StudentRankEnum,
-    nullable: false,
-    default: StudentRankEnum.TOT,
+    type: 'varchar',
+    nullable: true,
+    default: null,
+    length: 255,
   })
   graduate_rank: string;
 
   @Column({
     type: 'varchar',
-    nullable: false,
+    nullable: true,
+    default: null,
     length: 10,
   })
   graduate_year: string;
@@ -165,16 +173,20 @@ export class Students {
   mother_name: string;
 
   @Column({
-    type: 'date',
+    type: 'varchar',
+    length: 12,
     nullable: true,
+    default: null,
   })
-  father_date_of_birth: Date;
+  father_date_of_birth: string;
 
   @Column({
-    type: 'date',
+    type: 'varchar',
+    length: 12,
     nullable: true,
+    default: null,
   })
-  mother_date_of_birth: Date;
+  mother_date_of_birth: string;
 
   @Column({
     type: 'enum',
@@ -198,66 +210,82 @@ export class Students {
 
   @Column({
     type: 'char',
-    nullable: false,
+    nullable: true,
+    default: null,
     length: 8,
   })
   sbd: string;
 
   @Column({
     type: 'char',
-    nullable: false,
+    nullable: true,
+    default: null,
     length: 3,
   })
   block: string;
 
   @Column({
     type: 'int',
-    nullable: false,
+    nullable: true,
+    default: null,
   })
   area: string;
 
   @Column({
     type: 'uuid',
     nullable: true,
+    default: null,
   })
   admissions_industry: string;
 
   @Column({
     type: 'float',
-    nullable: false,
+    nullable: true,
+    default: null,
   })
   suj_score_1: string;
 
   @Column({
     type: 'float',
-    nullable: false,
+    nullable: true,
+    default: null,
   })
   suj_score_2: string;
 
   @Column({
     type: 'float',
-    nullable: false,
+    nullable: true,
+    default: null,
   })
   suj_score_3: string;
 
   @Column({
     type: 'float',
-    nullable: false,
+    nullable: true,
+    default: null,
   })
   plus_score: string;
 
   @Column({
     type: 'float',
-    nullable: false,
+    nullable: true,
+    default: null,
   })
   total_score: string;
 
   @Column({
     type: 'int',
-    default: 1,
-    nullable: false,
+    nullable: true,
+    default: null,
   })
   count: string;
+
+  @Column({
+    type: 'boolean',
+    default: false,
+    nullable: false,
+  })
+  approve: boolean;
 
   @CreateDateColumn()
   created_at: Date;
