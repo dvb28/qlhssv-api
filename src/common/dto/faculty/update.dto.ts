@@ -9,6 +9,8 @@ export class FacultyUpdateDto {
 
   desc: string;
 
+  faculty_name: string;
+
   @IsNotEmpty({ message: 'Mã không được trống' })
   identifier_id: string;
 }

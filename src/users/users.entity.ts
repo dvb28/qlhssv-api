@@ -36,6 +36,14 @@ export class Users {
   @Column({
     type: 'varchar',
     nullable: false,
+    default: 'USER',
+    length: 255,
+  })
+  roles: string;
+
+  @Column({
+    type: 'varchar',
+    nullable: false,
     length: 255,
   })
   avatar: string;

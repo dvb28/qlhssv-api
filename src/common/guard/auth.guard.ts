@@ -1,8 +1,9 @@
 import {
   CanActivate,
   ExecutionContext,
+  HttpException,
+  HttpStatus,
   Injectable,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { jwtConstants } from '../../auth/constants';
@@ -36,7 +37,7 @@ export class AuthGuard implements CanActivate {
       const token = this.extractTokenFromHeader(request);
 
       // Check token is valid
-      if (!token) throw new UnauthorizedException();
+      if (!token) throw Error();
 
       // Secret
       const secret: any = { secret: jwtConstants.secret };
@@ -48,7 +49,10 @@ export class AuthGuard implements CanActivate {
       request['user'] = payload;
     } catch {
       // Throw Error
-      throw new UnauthorizedException();
+      throw new HttpException(
+        'Không có quyền truy cập',
+        HttpStatus.UNAUTHORIZED,
+      );
     }
 
     // Return

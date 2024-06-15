@@ -6,6 +6,7 @@ export class UsersDto {
   fullname: string;
   phone: string;
   gender: GenderEnum;
+  roles: string;
   avatar: string;
   created_at: Date;
   updated_at: Date;
@@ -14,6 +15,7 @@ export class UsersDto {
     this.id = object.id;
     this.email = object.email;
     this.fullname = object.fullname;
+    this.roles = object.roles;
     this.phone = object.phone;
     this.gender = object.gender;
     this.avatar = object.avatar;

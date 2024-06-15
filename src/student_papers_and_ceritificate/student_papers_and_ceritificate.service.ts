@@ -13,7 +13,7 @@ import * as FileSaver from 'fs';
 export class StudentPapersAndCeritificateService {
   constructor(
     @InjectRepository(StudentPapersAndCeritificate)
-    private readonly spaceRepository: Repository<StudentPapersAndCeritificate>,
+    private readonly spacRepository: Repository<StudentPapersAndCeritificate>,
     @InjectEntityManager()
     private entityManager: EntityManager,
   ) {}
@@ -32,7 +32,7 @@ export class StudentPapersAndCeritificateService {
         : { file: null };
 
       // Created
-      const spac = this.spaceRepository.create({
+      const spac = this.spacRepository.create({
         ...body,
         ...temp,
         give_back_date: body?.give_back_date
@@ -41,7 +41,7 @@ export class StudentPapersAndCeritificateService {
       });
 
       // Return
-      return await this.spaceRepository.save(spac);
+      return await this.spacRepository.save(spac);
     } catch (error) {
       // Throw error
       throw new HttpException(error.message, HttpStatus.CONFLICT);
@@ -53,7 +53,7 @@ export class StudentPapersAndCeritificateService {
     // Exception
     try {
       // Created
-      const inserted = await this.spaceRepository.insert(
+      const inserted = await this.spacRepository.insert(
         body.map((item) => ({
           ...item,
           submit_date: new Date(),
@@ -81,7 +81,8 @@ export class StudentPapersAndCeritificateService {
     // Exception
     try {
       // Destruc
-      const [data, total] = await this.spaceRepository.findAndCount({
+      const [data, total] = await this.spacRepository.findAndCount({
+        where: { student_id: params.student_id },
         skip: (size - 1) * limit,
         take: limit,
         order: { created_at: 'ASC' },
@@ -134,7 +135,7 @@ export class StudentPapersAndCeritificateService {
       const { id, ...data } = body;
 
       // Find
-      const spac = await this.spaceRepository.findOne({
+      const spac = await this.spacRepository.findOne({
         where: { id },
       });
 
@@ -147,18 +148,21 @@ export class StudentPapersAndCeritificateService {
       }
 
       // Check and delete file
-      if (spac?.file && body?.file) {
+      if (typeof body?.file === 'string' && spac?.file && body?.file) {
         FileSaver.unlinkSync(`./public/${spac.file}`);
       }
 
       // Temp
-      const temp = Boolean(body?.file !== '')
-        ? {
-            is_submit: true,
-            file: `files/spac/${body.file}`,
-            submit_date: new Date(),
-          }
-        : { file: null };
+      const temp =
+        typeof body?.file === 'string'
+          ? body?.file?.length > 0
+            ? {
+                is_submit: true,
+                file: `files/spac/${body.file}`,
+                submit_date: new Date(),
+              }
+            : { file: null }
+          : { file: spac?.file };
 
       // Update
       Object.assign(spac, {
@@ -170,7 +174,7 @@ export class StudentPapersAndCeritificateService {
       });
 
       // Return
-      return this.spaceRepository.save(spac);
+      return this.spacRepository.save(spac);
     } catch (error) {
       // Throw error
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);

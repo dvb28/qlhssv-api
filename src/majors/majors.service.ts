@@ -121,7 +121,12 @@ export class MajorsService {
       }
 
       // Update
-      Object.assign(majors, data);
+      Object.assign(majors, {
+        ...data,
+        faculty: {
+          name: body.faculty_name,
+        },
+      });
 
       // Return
       return this.majorsRepository.save(majors);

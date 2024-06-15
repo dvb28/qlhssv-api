@@ -20,6 +20,8 @@ import { Course } from './course.entity';
 import { CourseStatisReqDto } from 'src/common/dto/course/statis.dto';
 import { CourseSearchDto } from 'src/common/dto/course/search.dto';
 import { PageDateDto } from 'src/common/dto/shared/data.page.dto';
+import { Roles } from 'src/common/decorator/roles.decorator';
+import { Role } from 'src/common/enums/users/role.enum';
 
 @Controller('course')
 export class CourseController {
@@ -60,6 +62,7 @@ export class CourseController {
 
   // [GET] /page
   @Put('update')
+  @Roles(Role.ADMIN)
   @HttpCode(200)
   async update(@Body(new ValidationPipe()) body: CourseUpdateDto) {
     // Call service
