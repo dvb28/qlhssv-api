@@ -20,6 +20,8 @@ import { UsersDeleteDto } from 'src/common/dto/user/delete.dto';
 import { Roles } from 'src/common/decorator/roles.decorator';
 import { Role } from 'src/common/enums/users/role.enum';
 import { UsersUpdateRoleDto } from 'src/common/dto/user/update.role.dto';
+import { PageDateDto } from 'src/common/dto/shared/data.page.dto';
+import { UsersSearchDto } from 'src/common/dto/user/search.dto';
 
 @Controller('users')
 export class UsersController {
@@ -35,6 +37,31 @@ export class UsersController {
 
     // Return
     return new ResponseData<Users>({ data: users }, HttpStatus.OK);
+  }
+
+  // [GET] /page
+  @Get('all')
+  @HttpCode(200)
+  async excel() {
+    // Call service
+    const excel = await this.usersService.all();
+
+    // Return
+    return new ResponseData<any>({ data: excel }, HttpStatus.OK);
+  }
+
+  // [GET] /search
+  @Get('search')
+  @HttpCode(200)
+  async search(@Query(new ValidationPipe()) params: UsersSearchDto) {
+    // Call service
+    const search = await this.usersService.search(params);
+
+    // Return
+    return new ResponseData<PageDateDto<Users>>(
+      { data: search },
+      HttpStatus.OK,
+    );
   }
 
   // [GET] /page

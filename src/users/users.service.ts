@@ -11,6 +11,7 @@ import { UsersDto } from 'src/common/dto/user/users.dto';
 import { Role } from 'src/common/enums/users/role.enum';
 import { UsersDeleteDto } from 'src/common/dto/user/delete.dto';
 import { UsersUpdateRoleDto } from 'src/common/dto/user/update.role.dto';
+import { UsersSearchDto } from 'src/common/dto/user/search.dto';
 // This should be a real class/interface representing a Student entity
 export type User = any;
 
@@ -74,6 +75,43 @@ export class UsersService {
 
       // Return
       return this.userRepository.save(course);
+    } catch (error) {
+      // Throw error
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  // [SERVICE] Search with column
+  async search(params: UsersSearchDto): Promise<PageDateDto<Users>> {
+    // Limit
+    const limit = 10;
+
+    // Page size
+    const size = parseInt(params.page.toString());
+
+    // Exception
+    try {
+      // Destruc
+      const query = this.userRepository
+        .createQueryBuilder('users')
+        .where(`users.${params.field} LIKE :search`, {
+          search: `%${params.search}%`,
+        })
+        .skip((size - 1) * limit)
+        .orderBy('users.created_at', 'ASC')
+        .take(limit);
+
+      // Destructuring
+      const [data, total] = await query.getManyAndCount();
+
+      // Return
+      return {
+        data,
+        total,
+        limit,
+        page: size,
+        pages: Math.ceil(total / limit),
+      };
     } catch (error) {
       // Throw error
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -192,6 +230,21 @@ export class UsersService {
         pages: Math.ceil(total / limit),
         data: data.map((user: Users) => new UsersDto(user)),
       };
+    } catch (error) {
+      // Throw error
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  // [SERVICE] Generate Excel File
+  async all(): Promise<User[]> {
+    // Exception
+    try {
+      // Destruc
+      const all = await this.userRepository.find();
+
+      // Return
+      return all.map((user: Users) => new UsersDto(user));
     } catch (error) {
       // Throw error
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
