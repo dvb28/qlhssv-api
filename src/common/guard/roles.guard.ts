@@ -30,7 +30,7 @@ export class RolesGuard implements CanActivate {
       const roles = this.extractRolesFromHeader(request);
 
       // Check is route match
-      if (!requiredRoles.some((role) => roles?.includes(role))) throw Error();
+      if (requiredRoles.some((role) => roles?.includes(role))) return true;
 
       // Return true
     } catch (error) {

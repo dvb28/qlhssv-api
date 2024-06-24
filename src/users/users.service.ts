@@ -5,8 +5,14 @@ import * as bcrypt from 'bcrypt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UsersUpdateDto } from 'src/common/dto/user/update.dto';
+import { UserPageDto } from 'src/common/dto/user/page.dts';
+import { PageDateDto } from 'src/common/dto/shared/data.page.dto';
+import { UsersDto } from 'src/common/dto/user/users.dto';
+import { Role } from 'src/common/enums/users/role.enum';
+import { UsersDeleteDto } from 'src/common/dto/user/delete.dto';
+import { UsersUpdateRoleDto } from 'src/common/dto/user/update.role.dto';
 // This should be a real class/interface representing a Student entity
-export type Student = any;
+export type User = any;
 
 @Injectable()
 export class UsersService {
@@ -15,13 +21,13 @@ export class UsersService {
     private readonly userRepository: Repository<Users>,
   ) {}
 
-  async findByEmail(email: string): Promise<Student | undefined> {
+  async findByEmail(email: string): Promise<Users | undefined> {
     // Return
     return await this.userRepository.findOneBy({ email });
   }
 
   // [SERVICE] Create
-  async create(signUpData: SignUpDto): Promise<Student | undefined> {
+  async create(signUpData: SignUpDto): Promise<User | undefined> {
     // Exception
     try {
       // Created
@@ -37,6 +43,73 @@ export class UsersService {
 
       // Return
       return created;
+    } catch (error) {
+      // Throw Error
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  // [SERVICE] Update Role
+  async update_role(body: UsersUpdateRoleDto): Promise<Users> {
+    // Exception
+    try {
+      // Data
+      const { id, ...roles } = body;
+
+      // Find
+      const course = await this.userRepository.findOne({
+        where: { id },
+      });
+
+      // Check Course
+      if (!course) {
+        throw new HttpException(
+          'Không tìm thấy tài khoản muốn cập nhật quyền',
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      // Update
+      Object.assign(course, roles);
+
+      // Return
+      return this.userRepository.save(course);
+    } catch (error) {
+      // Throw error
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  // [SERVICE] Delete
+  async delete(params: UsersDeleteDto): Promise<number> {
+    // Exception
+    try {
+      // Destruc
+      await this.userRepository.delete(params.ids);
+
+      // Return
+      return params.ids.length;
+    } catch (error) {
+      // Throw error
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  // [SERVICE] Add
+  async add(signUpData: SignUpDto): Promise<User | undefined> {
+    // Exception
+    try {
+      const created = await this.create(signUpData);
+
+      // Parse
+      const parse = new UsersDto({
+        email: signUpData.email,
+        fullname: signUpData.fullname,
+        ...created.generatedMaps[0],
+      } as Users);
+
+      // Created
+      return parse;
     } catch (error) {
       // Throw Error
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -84,6 +157,41 @@ export class UsersService {
 
       // Return
       return this.userRepository.save(user);
+    } catch (error) {
+      // Throw error
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  // [SERVICE] Page
+  async page(params: UserPageDto): Promise<PageDateDto<UsersDto>> {
+    // Limit
+    const limit = 10;
+
+    // Page size
+    const size = parseInt(params.page.toString());
+
+    // Exception
+    try {
+      // Create query
+      const query = this.userRepository
+        .createQueryBuilder('users')
+        .where('users.roles NOT LIKE :role', { role: `%${Role.ADMIN}%` })
+        .skip((size - 1) * limit)
+        .orderBy('users.created_at', 'ASC')
+        .take(limit);
+
+      // Destructuring
+      const [data, total] = await query.getManyAndCount();
+
+      // Return
+      return {
+        total,
+        limit,
+        page: size,
+        pages: Math.ceil(total / limit),
+        data: data.map((user: Users) => new UsersDto(user)),
+      };
     } catch (error) {
       // Throw error
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
